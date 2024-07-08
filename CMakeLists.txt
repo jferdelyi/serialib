@@ -60,4 +60,10 @@ IF (BUILD_EXAMPLES)
     add_executable(example4 ${EXAMPLE4})
     target_link_libraries(example4 serialib)
 
+    file(GLOB EXAMPLE5
+        "lib/serialib.h"
+        "example5/main.cpp"
+    )
+    add_executable(example5 ${EXAMPLE5})
+    target_link_libraries(example5 serialib)
 ENDIF()
