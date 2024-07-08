@@ -9,8 +9,15 @@ The library has been tested on Windows and Linux. This project has been develope
 with Qt Creator and succesfully compile with:
 * gcc on Linux
 * MinGW on Windows
+* MSVC on Windows
 The library should work on Mac OS and be compiled with others IDE.
 
+Compile using CMake
+'''bash
+mkdir build
+cmake -DCMAKE_BUILD_TYPE=Release . -B .\build\
+cmake --build .\build\
+'''
 
 More details on [Lulu's blog](https://lucidar.me/en/serialib/cross-plateform-rs232-serial-library/)
 
