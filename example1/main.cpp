@@ -12,9 +12,8 @@
 
 // Serial library
 #include "../lib/serialib.h"
-#include <unistd.h>
 #include <stdio.h>
-
+#include <thread>
 
 #if defined (_WIN32) || defined(_WIN64)
     //for serial ports above "COM9", we must use this extended syntax of "\\.\COMx".
@@ -23,6 +22,7 @@
     #define SERIAL_PORT "\\\\.\\COM1"
 #endif
 #if defined (__linux__) || defined(__APPLE__)
+    #include <unistd.h>
     #define SERIAL_PORT "/dev/ttyACM0"
 #endif
 
@@ -52,7 +52,7 @@ int main( /*int argc, char *argv[]*/)
     for (int c=32;c<128;c++)
     {
         serial.writeChar(c);
-        usleep(10000);
+        std::this_thread::sleep_for(std::chrono::microseconds(10000));
     }
 
     // Close the serial device

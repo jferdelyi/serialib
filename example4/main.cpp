@@ -1,5 +1,5 @@
 /**
- * @file /example1/main.cpp
+ * @file /example4/main.cpp
  * @author Philippe Lucidarme
  * @date December 2019
  * @brief File containing example of serial port communication
@@ -28,7 +28,6 @@
 
 // Serial library
 #include "../lib/serialib.h"
-#include <unistd.h>
 #include <stdio.h>
 
 
@@ -39,6 +38,7 @@
     #define SERIAL_PORT "\\\\.\\COM1"
 #endif
 #if defined (__linux__) || defined(__APPLE__)
+    #include <unistd.h>
     #define SERIAL_PORT "/dev/ttyACM0"
 #endif
 
