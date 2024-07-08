@@ -1049,9 +1049,118 @@ bool serialib::isRTS()
 #endif
 }
 
+// ___________________
+// ::: Get Devices :::
 
+/*!
+    \brief      Get the list of available ports
+    \return     The list of available ports
+*/
+std::vector<SerialDeviceInfo> serialib::getDeviceList() {
+    std::vector<SerialDeviceInfo> devices;
 
+#if defined (__linux__) || defined(__APPLE__)
+    std::vector<std::string> prefixMatch;
+#endif
 
+#if defined (__APPLE__)
+    prefixMatch.push_back("cu.");
+    prefixMatch.push_back("tty.");
+#endif
+
+#if defined (__linux__)
+    prefixMatch.push_back("ttyACM");
+    prefixMatch.push_back("ttyS");
+    prefixMatch.push_back("ttyUSB");
+    prefixMatch.push_back("rfc");
+#endif
+
+#if defined (__linux__) || defined(__APPLE__)
+    DIR *dir;
+    struct dirent *entry;
+    dir = opendir("/dev");
+
+    std::string deviceName	= "";
+    int deviceCount		= 0;
+
+    if (dir == NULL){
+        std::cerr << "buildDeviceList(): error listing devices in /dev" << "\r\n" << std::endl;
+    } else {
+        // For each device
+        while((entry = readdir(dir)) != NULL){
+            deviceName = (char *)entry->d_name;
+
+            // We go through the prefixes
+            for(auto & prefix: prefixMatch){
+                // If the device name is longer than the prefix
+                if(deviceName.size() > prefix.size()){
+                    // Do they match ?
+                    if(deviceName.substr(0, prefix.size()) == prefix.c_str()) {
+                        devices.push_back({ std::string("/dev/" + deviceName), std::string(deviceName) });
+                        deviceCount++;
+                        break;
+                    }
+                }
+            }
+        }
+        closedir(dir);
+    }
+#endif
+
+#if defined (_WIN32) || defined(_WIN64)
+    HDEVINFO hDevInfo = nullptr;
+    SP_DEVINFO_DATA DeviceInterfaceData;
+    DWORD dataType, actualSize = 0;
+
+    // Search device set
+    hDevInfo = SetupDiGetClassDevs((struct _GUID *)&GUID_SERENUM_BUS_ENUMERATOR, 0, 0, DIGCF_PRESENT);
+    if(hDevInfo){
+        int i = 0;
+        int nPorts = 0;
+        unsigned char dataBuf[MAX_PATH + 1];
+        while (true) {
+            ZeroMemory(&DeviceInterfaceData, sizeof(DeviceInterfaceData));
+            DeviceInterfaceData.cbSize = sizeof(DeviceInterfaceData);
+            if(!SetupDiEnumDeviceInfo(hDevInfo, i, &DeviceInterfaceData)){
+                // SetupDiEnumDeviceInfo failed
+                break;
+            }
+
+            if(SetupDiGetDeviceRegistryPropertyA(hDevInfo, &DeviceInterfaceData, SPDRP_FRIENDLYNAME, &dataType, dataBuf, sizeof(dataBuf), &actualSize)) {
+                // turn blahblahblah(COM4) into COM4
+                char * begin = nullptr;
+                char * end = nullptr;
+                begin = strstr((char *)dataBuf, "(COM");
+
+                if (begin) {
+                    begin++;	// get rid of the (
+                    end = strstr(begin, ")");
+                    if(end) {
+                        *end = 0;   // get rid of the )...
+                        devices.push_back({ reinterpret_cast<char const*>(dataBuf), begin });
+                    }
+                    if(nPorts++ > MAX_SERIAL_PORTS) {
+                        break;
+                    }
+                }
+            }
+            i++;
+        }
+        SetupDiDestroyDeviceInfoList(hDevInfo);
+    }
+#endif
+
+#if defined( TARGET_OSX )
+    //here we sort the device to have the aruino ones first.
+    partition(devices.begin(), devices.end(), isDeviceArduino);
+    //we are reordering the device ids. too!
+    int k = 0;
+    for(auto & device: devices){
+        device.deviceID = k++;
+    }
+#endif
+    return devices; 
+}
 
 
 // ******************************************

@@ -24,6 +24,12 @@ This is a licence-free software, it can be used by anyone who try to build a bet
     #include <sys/time.h>
 #endif
 
+#if defined(__APPLE__)
+    static bool isDeviceArduino( ofSerialDeviceInfo & A ) {
+        return (strstr(A.getDeviceName().c_str(), "usbserial") != nullptr || strstr(A.getDeviceName().c_str(), "usbmodem") != nullptr);
+    }
+#endif
+
 // Include for windows
 #if defined (_WIN32) || defined (_WIN64)
 #if defined(__GNUC__)
@@ -35,6 +41,11 @@ This is a licence-free software, it can be used by anyone who try to build a bet
 #endif
     // Accessing to the serial port under Windows
     #include <windows.h>
+    #pragma comment (lib, "Setupapi.lib")
+    #include <setupapi.h>
+    #define MAX_SERIAL_PORTS 256
+    // Needed for serial bus enumeration: 4d36e978-e325-11ce-bfc1-08002be10318
+    DEFINE_GUID (GUID_SERENUM_BUS_ENUMERATOR, 0x4D36E978, 0xE325, 0x11CE, 0xBF, 0xC1, 0x08, 0x00, 0x2B, 0xE1, 0x03, 0x18);
 #endif
 
 // Include for Linux
@@ -51,6 +62,9 @@ This is a licence-free software, it can be used by anyone who try to build a bet
     #include <unistd.h>
     #include <sys/ioctl.h>
 #endif
+
+#include <string>
+#include <vector>
 
 /*! To avoid unused parameters */
 #define UNUSED(x) (void)(x)
@@ -84,6 +98,16 @@ enum SerialParity {
     SERIAL_PARITY_ODD, /**< odd parity bit */
     SERIAL_PARITY_MARK, /**< mark parity */
     SERIAL_PARITY_SPACE /**< space bit */
+};
+
+/**
+ * serial device info
+ */
+struct SerialDeviceInfo {
+        // The device path (e.g /dev/tty.cu/usbdevice-a440).
+        std::string devicePath;
+        // The device name (e.g. usbdevice-a440 / COM4).
+        std::string deviceName;
 };
 
 /*!  \class     serialib
@@ -210,6 +234,9 @@ public:
 
     // Get CTR status (Data Terminal Ready, pin 4)
     bool    isDTR();
+
+    // Get the list of available ports
+    std::vector<SerialDeviceInfo> getDeviceList();
 
 
 private:
