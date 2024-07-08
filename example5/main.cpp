@@ -59,9 +59,6 @@ int main(int argc, char* argv[]) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
 		while (l_serial.available()) {
-			// Check if there is data to read
-			int l_bytes_to_read = l_serial.available();
-
 			// Print number of bytes 
 			int l_char_read = l_serial.readString(l_bytes_to_process, '\n', 512);
 			std::cout << std::endl << "RECEIVED " << std::dec << l_char_read << " BYTES" << std::endl;
