@@ -63,8 +63,8 @@ int main(int argc, char* argv[]) {
 			int l_bytes_to_read = l_serial.available();
 
 			// Print number of bytes 
-			std::cout << std::endl << "RECEIVED " << std::dec << l_bytes_to_read << " BYTES" << std::endl;
-			int l_char_read = l_serial.readString(l_bytes_to_process, '\0', 512);
+			int l_char_read = l_serial.readString(l_bytes_to_process, '\n', 512);
+			std::cout << std::endl << "RECEIVED " << std::dec << l_char_read << " BYTES" << std::endl;
 
 			if (l_char_read > 0) {
 				// Print hexa data
@@ -73,8 +73,10 @@ int main(int argc, char* argv[]) {
 					std::cout << static_cast<unsigned short>(l_bytes_to_process[i] & 0x00FF) << " ";
 				}
 
-				// Print string data 
-				std::cout << std::dec << "-> " << l_bytes_to_process << std::endl << std::endl;
+				// Print string data
+				std::string l_data(l_bytes_to_process);
+				l_data.erase(std::remove(l_data.begin(), l_data.end(), '\n'), l_data.cend());
+				std::cout << std::dec << "-> " << l_data << std::endl;
 			} else {
 				switch (l_char_read) {
 				case 0:
