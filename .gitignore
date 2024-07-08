@@ -34,3 +34,6 @@ build*/
 *.autosave
 
 # End of https://www.gitignore.io/api/qtcreator
+
+/.vscode/*
+/CMakeFiles/*
